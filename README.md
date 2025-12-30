@@ -1,59 +1,209 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# 🏥 Hospital Management System API
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+RESTful Backend API untuk Sistem Manajemen Rumah Sakit yang dibangun menggunakan **Laravel 11**.  
+Project ini dirancang sebagai **portfolio backend** dengan fokus pada autentikasi, role-based access control, manajemen data terstruktur, dan audit logging.
 
-## About Laravel
+---
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+## 📌 Project Overview
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+Hospital Management System API adalah backend service yang mengelola data **user**, **dokter**, dan **pasien** dalam satu sistem terintegrasi.  
+API ini mendukung autentikasi berbasis token, kontrol akses berdasarkan role, pencatatan aktivitas (audit trail), serta endpoint statistik untuk dashboard.
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+Project ini dibuat untuk mensimulasikan **kebutuhan backend dunia nyata** pada sistem skala kecil hingga menengah.
 
-## Learning Laravel
+---
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework. You can also check out [Laravel Learn](https://laravel.com/learn), where you will be guided through building a modern Laravel application.
+## 🏗️ Tech Stack
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+- **Framework**: Laravel 11
+- **Language**: PHP 8.2+
+- **Database**: MySQL 8.0+
+- **Authentication**: Laravel Sanctum (Token-based)
+- **ORM**: Eloquent ORM
+- **API Format**: JSON (konsisten dengan ApiResponse Trait)
 
-## Laravel Sponsors
+---
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+## 🔐 Authentication & Authorization
 
-### Premium Partners
+### Authentication
+- Register & Login menggunakan email dan password
+- Token-based authentication dengan Laravel Sanctum
+- Protected routes menggunakan middleware `auth:sanctum`
 
-- **[Vehikl](https://vehikl.com)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Redberry](https://redberry.international/laravel-development)**
-- **[Active Logic](https://activelogic.com)**
+### Role-Based Access Control (RBAC)
+Menggunakan custom middleware `CheckRole`
 
-## Contributing
+| Role  | Access |
+|------|-------|
+| Admin | Full access (users, doctors, patients, logs, dashboard) |
+| Staff | Limited access (patients management, view doctors & logs) |
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+---
 
-## Code of Conduct
+## 👥 User Roles
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+### Admin
+- Mengelola user
+- CRUD dokter
+- CRUD pasien
+- Melihat activity log
+- Mengakses dashboard statistik
 
-## Security Vulnerabilities
+### Staff
+- CRUD pasien
+- Melihat data dokter
+- Melihat activity log
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+---
 
-## License
+## 🏥 Manajemen Dokter
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+**Model: `Dokter`**
+- `nama` – Nama lengkap dokter
+- `spesialis` – Spesialisasi (Anak, Jantung, dll)
+- `no_telepon` – Nomor kontak
+- `jadwal` – Hari praktik (JSON array)
+
+**Relasi**
+- One-to-Many dengan Pasien
+
+### Endpoints (Admin only)
+
+| Method | Endpoint | Description |
+|------|---------|------------|
+| GET | `/api/dokters` | List dokter (search & pagination) |
+| POST | `/api/dokters` | Tambah dokter |
+| GET | `/api/dokters/{id}` | Detail dokter |
+| PUT | `/api/dokters/{id}` | Update dokter |
+| DELETE | `/api/dokters/{id}` | Hapus dokter |
+| GET | `/api/dokters/{id}/pasiens` | List pasien per dokter |
+
+---
+
+## 🧑‍⚕️ Manajemen Pasien
+
+**Model: `Pasien`**
+- `nama` – Nama pasien
+- `umur` – Usia pasien
+- `penyakit` – Diagnosis
+- `dokter_id` – Relasi dokter
+- `tanggal_masuk` – Tanggal masuk rumah sakit
+
+**Relasi**
+- Many-to-One dengan Dokter
+
+### Endpoints (Admin & Staff)
+
+| Method | Endpoint | Description |
+|------|---------|------------|
+| GET | `/api/pasiens` | List pasien (filter & search) |
+| POST | `/api/pasiens` | Tambah pasien |
+| GET | `/api/pasiens/{id}` | Detail pasien |
+| PUT | `/api/pasiens/{id}` | Update pasien |
+| DELETE | `/api/pasiens/{id}` | Hapus pasien |
+| POST | `/api/pasiens/{id}/change-dokter` | Pindah dokter |
+
+---
+
+## 📊 Dashboard & Statistik
+
+**Endpoint**
+`GET /api/dashboard/statistics`
+
+**Data yang ditampilkan**
+- Total dokter
+- Total pasien
+- Distribusi pasien per dokter
+- Statistik pasien bulanan
+- 5 pasien terbaru
+
+---
+
+## 📝 Activity Logging (Audit Trail)
+
+Sistem pencatatan aktivitas otomatis menggunakan **Laravel Observer**.
+
+**Observer**
+- `UserObserver`
+- `DokterObserver`
+- `PasienObserver`
+
+**Model: `ActivityLog`**
+- `user_id`
+- `action` (create, update, delete)
+- `model`
+- `model_id`
+- `changes` (JSON)
+
+**Endpoint**
+`GET /api/activity-logs`
+
+---
+
+## 📦 Database Schema
+
+**Tables**
+- `users`
+- `dokters`
+- `pasiens`
+- `activity_logs`
+- `personal_access_tokens`
+
+---
+
+## 🌱 Seeder (Dummy Data)
+
+DatabaseSeeder menyediakan:
+- 1 Admin user  
+  `admin@hospital.com / password`
+- 1 Staff user  
+  `staff@hospital.com / password`
+- 5 Dokter
+- 8 Pasien
+
+---
+
+## 📋 API Response Format
+
+### Success
+```json
+{
+  "success": true,
+  "message": "Data retrieved successfully",
+  "data": {}
+}
+```
+### Error
+```
+{
+  "success": false,
+  "message": "Unauthorized access",
+  "errors": []
+}
+```
+---
+## 🚀 Installation & Setup
+```
+git clone https://github.com/yourusername/hospital-api.git
+cd hospital-api
+composer install
+cp .env.example .env
+php artisan key:generate
+```
+### Database
+```
+php artisan migrate --seed
+```
+### Run Server
+```
+php artisan serve
+```
+---
+## 🧪 Testing
+- Feature & Unit tests menggunakan Laravel Testing
+- API testing menggunakan Postman / Insomnia
+- Authentication menggunakan Bearer Token
+
+---
